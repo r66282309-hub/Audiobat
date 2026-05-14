@@ -1,0 +1,1077 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Audiobat</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --panel2: #202431;
+      --text: #e8eaf0;
+      --muted: #9aa3b2;
+      --accent: #5db7ff;
+      --line: #303747;
+      --danger: #ff6b6b;
+      --ok: #7bd88f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      padding: 16px 20px;
+      background: linear-gradient(180deg, #171b24, #101217);
+      border-bottom: 1px solid var(--line);
+    }
+    h1 {
+      font-size: 20px;
+      margin: 0 0 4px;
+      font-weight: 700;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    main {
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.22);
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    button, label.filebtn {
+      background: var(--panel2);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+    button:hover, label.filebtn:hover { border-color: var(--accent); }
+    button.primary { background: #17364e; border-color: #286a98; }
+    button.danger { background: #4c2025; border-color: #8d3b45; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    input[type="file"] { display: none; }
+    input[type="range"] { width: 150px; }
+    .status {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 6px 16px;
+      margin-top: 10px;
+    }
+    .status b { color: var(--text); font-weight: 600; }
+    .canvasWrap {
+      position: relative;
+      background: #050609;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+    }
+    .axisLabel {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 6px 2px 0;
+    }
+    .row2 {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 900px) {
+      .row2 { grid-template-columns: 1fr; }
+    }
+    .help {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .pill {
+      display: inline-block;
+      color: var(--ok);
+      border: 1px solid #315d3a;
+      background: #142217;
+      border-radius: 999px;
+      padding: 2px 8px;
+      margin-left: 6px;
+      font-size: 12px;
+    }
+    .warn { color: #ffd166; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Audiobat <span class="pill">Web</span></h1>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="controls">
+        <label class="filebtn">
+          Apri WAV
+          <input id="fileInput" type="file" accept="audio/wav,audio/x-wav,.wav" />
+        </label>
+        <button id="playBtn" class="primary" disabled>Play</button>
+        <button id="stopBtn" class="danger" disabled>Stop</button>
+        <button id="loopBtn" disabled>Loop selezione: OFF</button>
+        <button id="clearSelBtn" disabled>Cancella selezione</button>
+        <button id="autoIdBtn" disabled>Auto-ID</button>
+        <button id="exportCsvBtn" disabled>Esporta CSV</button>
+        <label>Gain ascolto
+          <input id="gainSlider" type="range" min="0" max="4" value="1" step="0.05" />
+        </label>
+        <label>Contrasto spettrogramma
+          <input id="contrastSlider" type="range" min="0" max="100" value="35" step="1" />
+        </label>
+        <label>Sensibilità Auto-ID
+          <input id="sensitivitySlider" type="range" min="0.5" max="3" value="1.4" step="0.1" />
+        </label>
+      </div>
+      <div id="status" class="status">
+        <div><b>File:</b> nessun file caricato</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="canvasWrap">
+        <canvas id="spectrogram" width="1400" height="560"></canvas>
+      </div>
+      <div class="axisLabel">Spettrogramma: asse X = tempo originale del file; asse Y = frequenza originale. Trascina per selezionare. Click singolo per posizionare il cursore.</div>
+    </section>
+
+    <section class="row2">
+      <section class="panel">
+        <div class="canvasWrap">
+          <canvas id="zoomSpectrogram" width="900" height="360"></canvas>
+        </div>
+        <div class="axisLabel">Zoom selezione: mostra in dettaglio lo spettrogramma dell’intervallo selezionato. Se non c’è selezione, mostra una finestra attorno al cursore.</div>
+      </section>
+      <section class="panel help">
+        <div id="autoIdResults" style="margin-bottom:12px; padding:10px; border:1px solid var(--line); border-radius:10px; background:#11151d; color:var(--muted);">
+          <b style="color:var(--text);">Auto-ID</b><br>
+          Carica un WAV e premi “Auto-ID”. Il risultato è un suggerimento preliminare, non una determinazione certa.
+        </div>
+        <b>Uso rapido</b><br>
+        1. Carica un WAV full-spectrum, ad esempio 384 kHz.<br>
+        2. Il playback viene preparato a <b>sample rate / 10</b>: 384 kHz → 38,4 kHz, quindi il suono diventa udibile e 10× più lento.<br>
+        3. Trascina sullo spettrogramma principale per creare una selezione.<br>
+        4. La vista inferiore mostra una <b>zoomata della selezione</b>.<br>
+        5. Attiva il loop per ripetere solo la selezione.<br><br>
+      </section>
+    </section>
+  </main>
+
+<script>
+(() => {
+  const fileInput = document.getElementById('fileInput');
+  const playBtn = document.getElementById('playBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const loopBtn = document.getElementById('loopBtn');
+  const clearSelBtn = document.getElementById('clearSelBtn');
+  const autoIdBtn = document.getElementById('autoIdBtn');
+  const exportCsvBtn = document.getElementById('exportCsvBtn');
+  const autoIdResults = document.getElementById('autoIdResults');
+  const gainSlider = document.getElementById('gainSlider');
+  const contrastSlider = document.getElementById('contrastSlider');
+  const sensitivitySlider = document.getElementById('sensitivitySlider');
+  const statusEl = document.getElementById('status');
+  const specCanvas = document.getElementById('spectrogram');
+  const specCtx = specCanvas.getContext('2d');
+  const zoomCanvas = document.getElementById('zoomSpectrogram');
+  const zoomCtx = zoomCanvas.getContext('2d');
+
+  let audioCtx = null;
+  let gainNode = null;
+  let sourceNode = null;
+  let playStartAudioTime = 0;
+  let playStartOriginalTime = 0;
+  let animationId = null;
+
+  let fileName = '';
+  let samples = null;
+  let sampleRate = 0;
+  let channels = 0;
+  let bitDepth = 0;
+  let duration = 0;
+  let playbackRate = 0.1;
+  let playbackSampleRate = 0;
+
+  let spectrogramCols = [];
+  let fftSize = 2048;
+  let hopSize = 512;
+  let maxFreqDisplay = 160000;
+
+  let cursorTime = 0;
+  let selStart = null;
+  let selEnd = null;
+  let isSelecting = false;
+  let dragStartTime = 0;
+  let loop = false;
+  let lastAutoIdResults = null;
+
+  function setStatus(extra = '') {
+    if (!samples) {
+      statusEl.innerHTML = '<div><b>File:</b> nessun file caricato</div>';
+      return;
+    }
+    const selText = hasSelection()
+      ? `${fmtTime(selectionMin())} – ${fmtTime(selectionMax())} (${fmtTime(selectionMax() - selectionMin())})`
+      : 'nessuna';
+    statusEl.innerHTML = `
+      <div><b>File:</b> ${escapeHtml(fileName)}</div>
+      <div><b>Formato:</b> ${channels} canale/i, ${bitDepth} bit, ${sampleRate.toLocaleString('it-IT')} Hz</div>
+      <div><b>Durata originale:</b> ${fmtTime(duration)}</div>
+      <div><b>Playback:</b> ${(sampleRate/10).toLocaleString('it-IT')} Hz apparenti, 10× più lento</div>
+      <div><b>Cursore:</b> ${fmtTime(cursorTime)}</div>
+      <div><b>Selezione:</b> ${selText}</div>
+      ${extra ? `<div><b>Stato:</b> ${extra}</div>` : ''}
+    `;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  }
+
+  function fmtTime(t) {
+    if (!isFinite(t)) return '—';
+    const m = Math.floor(t / 60);
+    const s = t - m * 60;
+    return `${m}:${s.toFixed(3).padStart(6, '0')}`;
+  }
+
+  function hasSelection() {
+    return selStart !== null && selEnd !== null && Math.abs(selEnd - selStart) > 0.005;
+  }
+  function selectionMin() { return Math.max(0, Math.min(selStart, selEnd)); }
+  function selectionMax() { return Math.min(duration, Math.max(selStart, selEnd)); }
+
+  fileInput.addEventListener('change', async (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    fileName = f.name;
+    setStatus('lettura file...');
+    const buf = await f.arrayBuffer();
+    try {
+      const wav = parseWav(buf);
+      samples = wav.channelData[0];
+      sampleRate = wav.sampleRate;
+      channels = wav.channels;
+      bitDepth = wav.bitDepth;
+      duration = samples.length / sampleRate;
+      playbackSampleRate = sampleRate / 10;
+      cursorTime = 0;
+      selStart = selEnd = null;
+      maxFreqDisplay = Math.min(sampleRate / 2, 160000);
+      stopPlayback();
+      playBtn.disabled = false;
+      stopBtn.disabled = false;
+      loopBtn.disabled = false;
+      clearSelBtn.disabled = false;
+      autoIdBtn.disabled = false;
+      exportCsvBtn.disabled = false;
+      setStatus('calcolo spettrogramma...');
+      await new Promise(r => setTimeout(r, 20));
+      computeSpectrogram();
+      drawAll();
+      setStatus('pronto');
+    } catch (err) {
+      console.error(err);
+      alert('Errore apertura WAV: ' + err.message);
+      samples = null;
+      setStatus('errore');
+    }
+  });
+
+  playBtn.addEventListener('click', () => {
+    if (!samples) return;
+    const start = hasSelection() ? selectionMin() : cursorTime;
+    const end = hasSelection() ? selectionMax() : duration;
+    startPlayback(start, end);
+  });
+
+  stopBtn.addEventListener('click', stopPlayback);
+
+  loopBtn.addEventListener('click', () => {
+    loop = !loop;
+    loopBtn.textContent = `Loop selezione: ${loop ? 'ON' : 'OFF'}`;
+  });
+
+  clearSelBtn.addEventListener('click', () => {
+    selStart = selEnd = null;
+    drawAll();
+    setStatus('selezione cancellata');
+  });
+
+  autoIdBtn.addEventListener('click', () => {
+    if (!samples || spectrogramCols.length === 0) return;
+    const results = runAutoIdHeuristic();
+    lastAutoIdResults = results;
+    renderAutoIdResults(results);
+  });
+
+  exportCsvBtn.addEventListener('click', () => {
+    if (!lastAutoIdResults) {
+      lastAutoIdResults = runAutoIdHeuristic();
+      renderAutoIdResults(lastAutoIdResults);
+    }
+    exportAutoIdCsv(lastAutoIdResults);
+  });
+
+  gainSlider.addEventListener('input', () => {
+    if (gainNode) gainNode.gain.value = Number(gainSlider.value);
+  });
+
+  contrastSlider.addEventListener('input', () => drawSpectrogram());
+
+  function startPlayback(startTime, endTime) {
+    stopPlayback(false);
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = Number(gainSlider.value);
+    gainNode.connect(audioCtx.destination);
+
+    const s0 = Math.max(0, Math.floor(startTime * sampleRate));
+    const s1 = Math.min(samples.length, Math.floor(endTime * sampleRate));
+    const segment = samples.subarray(s0, s1);
+
+    // Crea un AudioBuffer con lo stesso numero di campioni, ma sampleRate 10 volte più basso.
+    // Così 384 kHz diventa 38,4 kHz e il playback dura 10 volte di più.
+    const safeRate = Math.max(3000, Math.min(192000, playbackSampleRate));
+    const buffer = audioCtx.createBuffer(1, segment.length, safeRate);
+    buffer.copyToChannel(segment, 0);
+
+    sourceNode = audioCtx.createBufferSource();
+    sourceNode.buffer = buffer;
+    sourceNode.connect(gainNode);
+    playStartAudioTime = audioCtx.currentTime;
+    playStartOriginalTime = startTime;
+    sourceNode.onended = () => {
+      if (loop && hasSelection()) {
+        startPlayback(selectionMin(), selectionMax());
+      } else {
+        sourceNode = null;
+        cancelAnimationFrame(animationId);
+        animationId = null;
+        drawAll();
+      }
+    };
+    sourceNode.start();
+    animateCursor();
+  }
+
+  function stopPlayback(redraw = true) {
+    if (sourceNode) {
+      try { sourceNode.stop(); } catch (_) {}
+      sourceNode.disconnect();
+      sourceNode = null;
+    }
+    if (audioCtx) {
+      try { audioCtx.close(); } catch (_) {}
+      audioCtx = null;
+    }
+    if (animationId) cancelAnimationFrame(animationId);
+    animationId = null;
+    if (redraw) drawAll();
+  }
+
+  function animateCursor() {
+    if (!audioCtx) return;
+    const elapsedPlayback = audioCtx.currentTime - playStartAudioTime;
+    cursorTime = playStartOriginalTime + elapsedPlayback * playbackRate;
+    if (hasSelection() && loop) {
+      if (cursorTime > selectionMax()) cursorTime = selectionMin();
+    }
+    cursorTime = Math.min(duration, Math.max(0, cursorTime));
+    drawAll();
+    setStatus('in riproduzione');
+    animationId = requestAnimationFrame(animateCursor);
+  }
+
+  function parseWav(arrayBuffer) {
+    const dv = new DataView(arrayBuffer);
+    const text = (off, len) => Array.from({length: len}, (_, i) => String.fromCharCode(dv.getUint8(off+i))).join('');
+    if (text(0,4) !== 'RIFF' || text(8,4) !== 'WAVE') throw new Error('Non sembra un file WAV RIFF/WAVE.');
+
+    let offset = 12;
+    let fmt = null;
+    let dataOffset = 0;
+    let dataSize = 0;
+
+    while (offset + 8 <= dv.byteLength) {
+      const id = text(offset, 4);
+      const size = dv.getUint32(offset + 4, true);
+      const chunkStart = offset + 8;
+      if (id === 'fmt ') {
+        fmt = {
+          audioFormat: dv.getUint16(chunkStart, true),
+          channels: dv.getUint16(chunkStart + 2, true),
+          sampleRate: dv.getUint32(chunkStart + 4, true),
+          byteRate: dv.getUint32(chunkStart + 8, true),
+          blockAlign: dv.getUint16(chunkStart + 12, true),
+          bitDepth: dv.getUint16(chunkStart + 14, true)
+        };
+      } else if (id === 'data') {
+        dataOffset = chunkStart;
+        dataSize = size;
+        break;
+      }
+      offset = chunkStart + size + (size % 2);
+    }
+    if (!fmt) throw new Error('Chunk fmt mancante.');
+    if (!dataOffset) throw new Error('Chunk data mancante.');
+    if (![1,3].includes(fmt.audioFormat)) throw new Error('Supportati solo PCM integer o float 32 bit non compressi.');
+
+    const bytesPerSample = fmt.bitDepth / 8;
+    const frames = Math.floor(dataSize / fmt.blockAlign);
+    const channelData = Array.from({ length: fmt.channels }, () => new Float32Array(frames));
+
+    let p = dataOffset;
+    for (let i = 0; i < frames; i++) {
+      for (let ch = 0; ch < fmt.channels; ch++) {
+        channelData[ch][i] = readSample(dv, p, fmt.bitDepth, fmt.audioFormat);
+        p += bytesPerSample;
+      }
+    }
+    return { channelData, sampleRate: fmt.sampleRate, channels: fmt.channels, bitDepth: fmt.bitDepth };
+  }
+
+  function readSample(dv, p, bits, format) {
+    if (format === 3 && bits === 32) return dv.getFloat32(p, true);
+    if (bits === 8) return (dv.getUint8(p) - 128) / 128;
+    if (bits === 16) return dv.getInt16(p, true) / 32768;
+    if (bits === 24) {
+      let x = dv.getUint8(p) | (dv.getUint8(p+1) << 8) | (dv.getUint8(p+2) << 16);
+      if (x & 0x800000) x |= 0xff000000;
+      return x / 8388608;
+    }
+    if (bits === 32) return dv.getInt32(p, true) / 2147483648;
+    throw new Error(bits + ' bit non supportati.');
+  }
+
+  function computeSpectrogram() {
+    spectrogramCols = [];
+    const n = samples.length;
+    fftSize = n > sampleRate * 60 ? 4096 : 2048;
+    hopSize = Math.floor(fftSize / 4);
+    const window = hann(fftSize);
+    const maxFrames = 1600;
+    const naturalFrames = Math.max(1, Math.floor((n - fftSize) / hopSize));
+    const frameStep = Math.max(1, Math.ceil(naturalFrames / maxFrames));
+
+    for (let frame = 0; frame < naturalFrames; frame += frameStep) {
+      const start = frame * hopSize;
+      const re = new Float64Array(fftSize);
+      const im = new Float64Array(fftSize);
+      for (let i = 0; i < fftSize; i++) re[i] = (samples[start + i] || 0) * window[i];
+      fft(re, im);
+      const bins = Math.floor(fftSize / 2);
+      const mag = new Float32Array(bins);
+      for (let k = 0; k < bins; k++) {
+        mag[k] = 20 * Math.log10(Math.sqrt(re[k]*re[k] + im[k]*im[k]) + 1e-9);
+      }
+      spectrogramCols.push({ time: start / sampleRate, mag });
+    }
+  }
+
+  function runAutoIdHeuristic() {
+    const tMin = hasSelection() ? selectionMin() : 0;
+    const tMax = hasSelection() ? selectionMax() : duration;
+    const minFreq = 15000;
+    const maxFreq = Math.min(sampleRate / 2, maxFreqDisplay);
+    const sensitivity = Number(sensitivitySlider.value);
+
+    // Analisi diretta sul segnale originale, non sullo spettrogramma ridotto.
+    const n = 1024;
+    const hop = 96;
+    const window = hann(n);
+    const startSample = Math.max(0, Math.floor(tMin * sampleRate));
+    const endSample = Math.min(samples.length, Math.floor(tMax * sampleRate));
+    const available = endSample - startSample;
+    if (available < n) {
+      return {
+        calls: [],
+        summary: { dominant: 'Selezione troppo corta', counts: {}, meanPeak: 0 },
+        range: [tMin, tMax],
+        debug: `Selezione troppo corta: ${(available / sampleRate * 1000).toFixed(1)} ms. Serve almeno ${(n / sampleRate * 1000).toFixed(1)} ms.`
+      };
+    }
+
+    const framePeaks = [];
+    const frameCount = Math.max(1, Math.floor((available - n) / hop));
+    for (let frame = 0; frame < frameCount; frame++) {
+      const s = startSample + frame * hop;
+      const re = new Float64Array(n);
+      const im = new Float64Array(n);
+      for (let i = 0; i < n; i++) re[i] = (samples[s + i] || 0) * window[i];
+      fft(re, im);
+      const peak = peakInBandForSize(re, im, n, minFreq, maxFreq);
+      if (peak) framePeaks.push({ time: s / sampleRate, ...peak });
+    }
+
+    if (framePeaks.length === 0) {
+      return { calls: [], summary: { dominant: 'Nessuna energia utile', counts: {}, meanPeak: 0 }, range: [tMin, tMax], debug: 'Nessun bin utile nella banda 15 kHz–Nyquist.' };
+    }
+
+    const dbs = framePeaks.map(f => f.db).sort((a,b) => a-b);
+    const noiseFloor = percentile(dbs, 0.55);
+    const highLevel = percentile(dbs, 0.95);
+    const dynamicRange = Math.max(6, highLevel - noiseFloor);
+
+    // Soglia adattiva: più alta è la sensibilità, più la soglia scende verso il rumore.
+    const thresholdDb = noiseFloor + dynamicRange / sensitivity;
+    const minCallDur = 0.0012;
+    const maxCallDur = 0.090;
+    const maxGap = 0.010;
+
+    const active = framePeaks.filter(f => f.db >= thresholdDb);
+    const calls = [];
+    let current = [];
+    for (const fr of active) {
+      if (current.length === 0) {
+        current.push(fr);
+      } else {
+        const prev = current[current.length - 1];
+        if (fr.time - prev.time <= maxGap) current.push(fr);
+        else {
+          pushCallIfValid(current, calls, minCallDur, maxCallDur);
+          current = [fr];
+        }
+      }
+    }
+    pushCallIfValid(current, calls, minCallDur, maxCallDur);
+
+    const classified = calls.map(c => ({ ...c, suggestion: classifyCall(c) }));
+    const summary = summarizeCalls(classified);
+    const debug = `Frame: ${framePeaks.length}; attivi: ${active.length}; noise floor: ${noiseFloor.toFixed(1)} dB; soglia: ${thresholdDb.toFixed(1)} dB; picco max: ${Math.max(...framePeaks.map(f=>f.db)).toFixed(1)} dB.`;
+    return { calls: classified, summary, range: [tMin, tMax], debug };
+  }
+
+  function percentile(sortedValues, p) {
+    if (!sortedValues.length) return 0;
+    const idx = Math.max(0, Math.min(sortedValues.length - 1, Math.floor(p * (sortedValues.length - 1))));
+    return sortedValues[idx];
+  }
+
+  function peakInBandForSize(re, im, n, minFreq, maxFreq) {
+    const binHz = sampleRate / n;
+    const k0 = Math.max(1, Math.floor(minFreq / binHz));
+    const k1 = Math.min(n / 2 - 1, Math.floor(maxFreq / binHz));
+    let bestK = -1;
+    let bestDb = -Infinity;
+    let sum = 0;
+    let count = 0;
+    for (let k = k0; k <= k1; k++) {
+      const db = 20 * Math.log10(Math.sqrt(re[k]*re[k] + im[k]*im[k]) + 1e-9);
+      sum += db;
+      count++;
+      if (db > bestDb) { bestDb = db; bestK = k; }
+    }
+    if (bestK < 0) return null;
+    return { freq: bestK * binHz, db: bestDb, bandMeanDb: sum / Math.max(1, count) };
+  }
+
+  function peakInBand(mag, minFreq, maxFreq) {
+    const binHz = sampleRate / fftSize;
+    const k0 = Math.max(1, Math.floor(minFreq / binHz));
+    const k1 = Math.min(mag.length - 1, Math.floor(maxFreq / binHz));
+    let bestK = -1;
+    let bestDb = -Infinity;
+    for (let k = k0; k <= k1; k++) {
+      if (mag[k] > bestDb) { bestDb = mag[k]; bestK = k; }
+    }
+    if (bestK < 0) return null;
+    return { freq: bestK * binHz, db: bestDb };
+  }
+
+  function pushCallIfValid(frames, calls, minDur, maxDur) {
+    if (!frames || frames.length < 2) return;
+    const t0 = frames[0].time;
+    const t1 = frames[frames.length - 1].time;
+    const dur = t1 - t0;
+    if (dur < minDur || dur > maxDur) return;
+    const freqs = frames.map(f => f.freq);
+    const dbs = frames.map(f => f.db);
+    const fStart = freqs[0];
+    const fEnd = freqs[freqs.length - 1];
+    const fMin = Math.min(...freqs);
+    const fMax = Math.max(...freqs);
+    const fPeak = freqs[dbs.indexOf(Math.max(...dbs))];
+    const fMean = freqs.reduce((a,b)=>a+b,0) / freqs.length;
+    const slope = (fEnd - fStart) / Math.max(0.0001, dur);
+    const bandwidth = fMax - fMin;
+    calls.push({ t0, t1, dur, fStart, fEnd, fMin, fMax, fPeak, fMean, bandwidth, slope, frames: frames.length });
+  }
+
+  function classifyCall(c) {
+    const fp = c.fPeak / 1000;
+    const fm = c.fMean / 1000;
+    const bw = c.bandwidth / 1000;
+    const durMs = c.dur * 1000;
+    const falling = c.fStart > c.fEnd + 3000;
+    const narrow = bw < 8;
+    const broad = bw > 25;
+
+    // Euristiche volutamente prudenti, tarate per dare gruppi morfo-acustici, non specie certe.
+    if (fp >= 48 && fp <= 58 && durMs >= 3 && durMs <= 14) {
+      return { label: 'Pipistrellus-like alto', confidence: 0.62, note: 'Compatibile con gruppo Pipistrellus ad alta frequenza; verificare contesto e chiamate multiple.' };
+    }
+    if (fp >= 38 && fp < 48 && durMs >= 3 && durMs <= 16) {
+      return { label: 'Pipistrellus/Hypsugo-like', confidence: 0.58, note: 'Frequenze compatibili con Pipistrellus medio-basso o Hypsugo; possibile sovrapposizione.' };
+    }
+    if (fp >= 22 && fp <= 35 && durMs >= 6 && durMs <= 30 && narrow) {
+      return { label: 'Nyctalus/Eptesicus-like', confidence: 0.55, note: 'Chiamata più bassa e relativamente stretta; possibile gruppo Nyctalus/Eptesicus/serotini.' };
+    }
+    if (fp >= 70 && fp <= 115 && falling && broad && durMs <= 10) {
+      return { label: 'Myotis-like / Rhinolophus-disturbato?', confidence: 0.45, note: 'Segnale alto e FM; Myotis-like possibile. Se CF stabile, considerare Rhinolophus.' };
+    }
+    if (fp >= 75 && narrow && durMs >= 15) {
+      return { label: 'CF alta / Rhinolophus-like', confidence: 0.50, note: 'Energia stretta e alta; controllare se la traccia è quasi orizzontale.' };
+    }
+    if (fp < 22 && durMs >= 8) {
+      return { label: 'Bassa frequenza / rumore o specie grande', confidence: 0.35, note: 'Possibile rumore, ortottero, uccello o pipistrello a bassa frequenza: verifica manuale necessaria.' };
+    }
+    return { label: 'Non determinato', confidence: 0.25, note: 'Parametri non abbastanza caratteristici per un suggerimento robusto.' };
+  }
+
+  function summarizeCalls(calls) {
+    if (calls.length === 0) return { dominant: 'Nessuna chiamata rilevata', counts: {}, meanPeak: 0 };
+    const counts = {};
+    let peakSum = 0;
+    for (const c of calls) {
+      counts[c.suggestion.label] = (counts[c.suggestion.label] || 0) + 1;
+      peakSum += c.fPeak;
+    }
+    const dominant = Object.entries(counts).sort((a,b) => b[1]-a[1])[0][0];
+    return { dominant, counts, meanPeak: peakSum / calls.length };
+  }
+
+  function renderAutoIdResults(results) {
+    const { calls, summary, range } = results;
+    if (calls.length === 0) {
+      autoIdResults.innerHTML = `<b style="color:var(--text);">Auto-ID</b><br>Nessuna chiamata rilevata nell’intervallo ${fmtTime(range[0])} – ${fmtTime(range[1])}.<br><br><span style="color:#ffd166;">Diagnostica:</span> ${results.debug || 'nessun dettaglio'}<br><br>Prova ad aumentare la <b>sensibilità Auto-ID</b>, selezionare una singola chiamata ben visibile, oppure verificare che il segnale sia sopra 15 kHz.`;
+      return;
+    }
+
+    const topCalls = calls.slice(0, 12).map((c, i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td>${fmtTime(c.t0)}</td>
+        <td>${(c.dur*1000).toFixed(1)} ms</td>
+        <td>${(c.fPeak/1000).toFixed(1)} kHz</td>
+        <td>${(c.fMin/1000).toFixed(1)}–${(c.fMax/1000).toFixed(1)} kHz</td>
+        <td>${c.suggestion.label}</td>
+      </tr>
+    `).join('');
+
+    const counts = Object.entries(summary.counts).map(([k,v]) => `${k}: ${v}`).join('<br>');
+    autoIdResults.innerHTML = `
+      <b style="color:var(--text);">Auto-ID</b><br>
+      <span style="color:var(--ok);">Risultato dominante:</span> <b style="color:var(--text);">${summary.dominant}</b><br>
+      Chiamate rilevate: <b style="color:var(--text);">${calls.length}</b><br>
+      Frequenza di picco media: <b style="color:var(--text);">${(summary.meanPeak/1000).toFixed(1)} kHz</b><br>
+      <div style="margin-top:6px;">${counts}</div>
+      <div style="overflow:auto; margin-top:10px; max-height:220px;">
+        <table style="width:100%; border-collapse:collapse; font-size:12px; color:var(--muted);">
+          <thead><tr style="color:var(--text);"><th>#</th><th>Inizio</th><th>Durata</th><th>Picco</th><th>Banda</th><th>Gruppo</th></tr></thead>
+          <tbody>${topCalls}</tbody>
+        </table>
+      </div>
+      <div style="margin-top:8px; color:#ffd166;">È una classificazione morfo-acustica preliminare: serve verifica manuale su più chiamate e conoscenza delle specie locali.</div>
+      <div style="margin-top:6px; color:var(--muted);">Diagnostica: ${results.debug || '—'}</div>
+    `;
+  }
+
+  function hann(n) {
+    const w = new Float64Array(n);
+    for (let i = 0; i < n; i++) w[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / (n - 1)));
+    return w;
+  }
+
+  function fft(re, im) {
+    const n = re.length;
+    let j = 0;
+    for (let i = 1; i < n; i++) {
+      let bit = n >> 1;
+      for (; j & bit; bit >>= 1) j ^= bit;
+      j ^= bit;
+      if (i < j) {
+        [re[i], re[j]] = [re[j], re[i]];
+        [im[i], im[j]] = [im[j], im[i]];
+      }
+    }
+    for (let len = 2; len <= n; len <<= 1) {
+      const ang = -2 * Math.PI / len;
+      const wlenR = Math.cos(ang), wlenI = Math.sin(ang);
+      for (let i = 0; i < n; i += len) {
+        let wr = 1, wi = 0;
+        for (let j = 0; j < len / 2; j++) {
+          const uR = re[i+j], uI = im[i+j];
+          const vR = re[i+j+len/2] * wr - im[i+j+len/2] * wi;
+          const vI = re[i+j+len/2] * wi + im[i+j+len/2] * wr;
+          re[i+j] = uR + vR;
+          im[i+j] = uI + vI;
+          re[i+j+len/2] = uR - vR;
+          im[i+j+len/2] = uI - vI;
+          const nextWr = wr * wlenR - wi * wlenI;
+          wi = wr * wlenI + wi * wlenR;
+          wr = nextWr;
+        }
+      }
+    }
+  }
+
+  function drawAll() {
+    drawSpectrogram();
+    drawZoomSpectrogram();
+  }
+
+  function drawSpectrogram() {
+    const w = specCanvas.width;
+    const h = specCanvas.height;
+    specCtx.clearRect(0, 0, w, h);
+    specCtx.fillStyle = '#050609';
+    specCtx.fillRect(0,0,w,h);
+
+    if (!samples || spectrogramCols.length === 0) {
+      specCtx.fillStyle = '#9aa3b2';
+      specCtx.font = '18px system-ui';
+      specCtx.fillText('Carica un file WAV per generare lo spettrogramma', 28, 48);
+      return;
+    }
+
+    const left = 64, right = 12, top = 12, bottom = 36;
+    const plotW = w - left - right;
+    const plotH = h - top - bottom;
+    const contrast = Number(contrastSlider.value);
+    const minDb = -115 + contrast * 0.45;
+    const maxDb = -20;
+
+    const img = specCtx.createImageData(plotW, plotH);
+    for (let x = 0; x < plotW; x++) {
+      const colIdx = Math.min(spectrogramCols.length - 1, Math.floor(x / plotW * spectrogramCols.length));
+      const mag = spectrogramCols[colIdx].mag;
+      for (let y = 0; y < plotH; y++) {
+        const freq = (1 - y / plotH) * maxFreqDisplay;
+        const bin = Math.min(mag.length - 1, Math.floor(freq / (sampleRate / fftSize)));
+        let v = (mag[bin] - minDb) / (maxDb - minDb);
+        v = Math.max(0, Math.min(1, v));
+        v = Math.pow(v, 0.75);
+        const c = colorMap(v);
+        const idx = (y * plotW + x) * 4;
+        img.data[idx] = c[0]; img.data[idx+1] = c[1]; img.data[idx+2] = c[2]; img.data[idx+3] = 255;
+      }
+    }
+    specCtx.putImageData(img, left, top);
+
+    // Selection overlay
+    if (hasSelection()) {
+      const x1 = left + selectionMin() / duration * plotW;
+      const x2 = left + selectionMax() / duration * plotW;
+      specCtx.fillStyle = 'rgba(93,183,255,.18)';
+      specCtx.fillRect(x1, top, x2 - x1, plotH);
+      specCtx.strokeStyle = 'rgba(93,183,255,.9)';
+      specCtx.lineWidth = 2;
+      specCtx.strokeRect(x1, top, x2 - x1, plotH);
+    }
+
+    // Cursor
+    const cx = left + cursorTime / duration * plotW;
+    specCtx.strokeStyle = '#ffffff';
+    specCtx.lineWidth = 1.5;
+    specCtx.beginPath();
+    specCtx.moveTo(cx, top);
+    specCtx.lineTo(cx, top + plotH);
+    specCtx.stroke();
+
+    // Axes
+    specCtx.strokeStyle = '#9aa3b2';
+    specCtx.lineWidth = 1;
+    specCtx.strokeRect(left, top, plotW, plotH);
+    specCtx.fillStyle = '#cbd2df';
+    specCtx.font = '12px system-ui';
+    for (let i = 0; i <= 4; i++) {
+      const f = i / 4 * maxFreqDisplay;
+      const y = top + plotH - i / 4 * plotH;
+      specCtx.fillText(`${Math.round(f/1000)} kHz`, 8, y + 4);
+      specCtx.strokeStyle = 'rgba(255,255,255,.12)';
+      specCtx.beginPath(); specCtx.moveTo(left, y); specCtx.lineTo(left+plotW, y); specCtx.stroke();
+    }
+    for (let i = 0; i <= 5; i++) {
+      const t = i / 5 * duration;
+      const x = left + i / 5 * plotW;
+      specCtx.fillText(fmtTime(t), x - 18, h - 12);
+    }
+  }
+
+  function colorMap(v) {
+    // Palette tipo sonogramma: blu notte -> blu -> azzurro -> grigio chiaro -> bianco.
+    // Serve a tenere lo sfondo scuro e far emergere le chiamate in bianco.
+    v = Math.max(0, Math.min(1, v));
+    const stops = [
+      [0.00, [2, 6, 20]],
+      [0.18, [5, 20, 55]],
+      [0.38, [12, 58, 115]],
+      [0.58, [42, 132, 190]],
+      [0.78, [185, 218, 235]],
+      [1.00, [255, 255, 255]]
+    ];
+    for (let i = 0; i < stops.length - 1; i++) {
+      const [a, ca] = stops[i], [b, cb] = stops[i+1];
+      if (v >= a && v <= b) {
+        const p = (v - a) / (b - a);
+        return ca.map((x, j) => Math.round(x + (cb[j] - x) * p));
+      }
+    }
+    return [255,255,255];
+  }
+
+  function exportAutoIdCsv(results) {
+    if (!results || !results.calls || results.calls.length === 0) {
+      alert('Nessuna chiamata da esportare. Esegui prima Auto-ID su un tratto con chiamate rilevate.');
+      return;
+    }
+
+    const header = [
+      'file',
+      'selection_start_s',
+      'selection_end_s',
+      'call_index',
+      'call_start_s',
+      'call_end_s',
+      'duration_ms',
+      'f_start_khz',
+      'f_end_khz',
+      'f_min_khz',
+      'f_max_khz',
+      'f_peak_khz',
+      'f_mean_khz',
+      'bandwidth_khz',
+      'slope_khz_per_s',
+      'frames',
+      'suggestion',
+      'confidence',
+      'note'
+    ];
+
+    const rows = results.calls.map((c, i) => [
+      fileName,
+      results.range[0].toFixed(6),
+      results.range[1].toFixed(6),
+      i + 1,
+      c.t0.toFixed(6),
+      c.t1.toFixed(6),
+      (c.dur * 1000).toFixed(3),
+      (c.fStart / 1000).toFixed(3),
+      (c.fEnd / 1000).toFixed(3),
+      (c.fMin / 1000).toFixed(3),
+      (c.fMax / 1000).toFixed(3),
+      (c.fPeak / 1000).toFixed(3),
+      (c.fMean / 1000).toFixed(3),
+      (c.bandwidth / 1000).toFixed(3),
+      (c.slope / 1000).toFixed(3),
+      c.frames,
+      c.suggestion.label,
+      c.suggestion.confidence.toFixed(2),
+      c.suggestion.note
+    ]);
+
+    const lines = [header].concat(rows).map(row => row.map(csvEscape).join(','));
+    const csv = lines.join(String.fromCharCode(10));
+
+    const blob = new Blob([String.fromCharCode(0xFEFF) + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const base = fileName ? fileName.replace(/\.[^.]+$/, '') : 'bat_audio';
+    a.href = url;
+    a.download = base + '_autoid.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function csvEscape(value) {
+    const s = String(value == null ? '' : value);
+    const mustQuote = s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf(';') >= 0 || s.indexOf(String.fromCharCode(10)) >= 0 || s.indexOf(String.fromCharCode(13)) >= 0;
+    if (!mustQuote) return s;
+    return '"' + s.split('"').join('""') + '"';
+  }
+
+  function drawZoomSpectrogram() {
+    const w = zoomCanvas.width;
+    const h = zoomCanvas.height;
+    zoomCtx.clearRect(0, 0, w, h);
+    zoomCtx.fillStyle = '#050609';
+    zoomCtx.fillRect(0, 0, w, h);
+
+    if (!samples) {
+      zoomCtx.fillStyle = '#9aa3b2';
+      zoomCtx.font = '18px system-ui';
+      zoomCtx.fillText('Zoom selezione non disponibile', 24, 44);
+      return;
+    }
+
+    let t0, t1;
+    if (hasSelection()) {
+      t0 = selectionMin();
+      t1 = selectionMax();
+    } else {
+      const win = Math.min(0.250, Math.max(0.030, duration / 20));
+      t0 = Math.max(0, cursorTime - win / 2);
+      t1 = Math.min(duration, cursorTime + win / 2);
+      if (t1 - t0 < win) {
+        if (t0 === 0) t1 = Math.min(duration, win);
+        if (t1 === duration) t0 = Math.max(0, duration - win);
+      }
+    }
+
+    if (t1 <= t0) return;
+
+    const left = 64, right = 12, top = 12, bottom = 36;
+    const plotW = w - left - right;
+    const plotH = h - top - bottom;
+    const contrast = Number(contrastSlider.value);
+    const minDb = -115 + contrast * 0.45;
+    const maxDb = -20;
+    const n = 2048;
+    const hop = 128;
+    const window = hann(n);
+    const startSample = Math.max(0, Math.floor(t0 * sampleRate));
+    const endSample = Math.min(samples.length, Math.floor(t1 * sampleRate));
+    const segmentSamples = endSample - startSample;
+    const frames = Math.max(1, Math.floor((segmentSamples - n) / hop));
+
+    const img = zoomCtx.createImageData(plotW, plotH);
+
+    for (let x = 0; x < plotW; x++) {
+      const frame = Math.floor(x / plotW * Math.max(1, frames));
+      const s = startSample + frame * hop;
+      const re = new Float64Array(n);
+      const im = new Float64Array(n);
+      for (let i = 0; i < n; i++) re[i] = (samples[s + i] || 0) * window[i];
+      fft(re, im);
+      for (let y = 0; y < plotH; y++) {
+        const freq = (1 - y / plotH) * maxFreqDisplay;
+        const bin = Math.min(n / 2 - 1, Math.floor(freq / (sampleRate / n)));
+        const db = 20 * Math.log10(Math.sqrt(re[bin]*re[bin] + im[bin]*im[bin]) + 1e-9);
+        let v = (db - minDb) / (maxDb - minDb);
+        v = Math.max(0, Math.min(1, v));
+        v = Math.pow(v, 0.75);
+        const c = colorMap(v);
+        const idx = (y * plotW + x) * 4;
+        img.data[idx] = c[0]; img.data[idx+1] = c[1]; img.data[idx+2] = c[2]; img.data[idx+3] = 255;
+      }
+    }
+    zoomCtx.putImageData(img, left, top);
+
+    // Cursor in zoom
+    if (cursorTime >= t0 && cursorTime <= t1) {
+      const cx = left + (cursorTime - t0) / (t1 - t0) * plotW;
+      zoomCtx.strokeStyle = '#ffffff';
+      zoomCtx.lineWidth = 1.5;
+      zoomCtx.beginPath();
+      zoomCtx.moveTo(cx, top);
+      zoomCtx.lineTo(cx, top + plotH);
+      zoomCtx.stroke();
+    }
+
+    zoomCtx.strokeStyle = '#9aa3b2';
+    zoomCtx.lineWidth = 1;
+    zoomCtx.strokeRect(left, top, plotW, plotH);
+    zoomCtx.fillStyle = '#cbd2df';
+    zoomCtx.font = '12px system-ui';
+
+    for (let i = 0; i <= 4; i++) {
+      const f = i / 4 * maxFreqDisplay;
+      const y = top + plotH - i / 4 * plotH;
+      zoomCtx.fillText(`${Math.round(f/1000)} kHz`, 8, y + 4);
+      zoomCtx.strokeStyle = 'rgba(255,255,255,.12)';
+      zoomCtx.beginPath(); zoomCtx.moveTo(left, y); zoomCtx.lineTo(left+plotW, y); zoomCtx.stroke();
+    }
+    for (let i = 0; i <= 5; i++) {
+      const t = t0 + i / 5 * (t1 - t0);
+      const x = left + i / 5 * plotW;
+      zoomCtx.fillText(fmtTime(t), x - 18, h - 12);
+    }
+
+    zoomCtx.fillStyle = 'rgba(255,255,255,.82)';
+    zoomCtx.font = '13px system-ui';
+    const label = hasSelection()
+      ? `Zoom selezione: ${fmtTime(t0)} – ${fmtTime(t1)}`
+      : `Zoom cursore: finestra ${fmtTime(t1 - t0)}`;
+    zoomCtx.fillText(label, left + 8, top + 20);
+  }
+
+  function canvasToTime(e) {
+    const rect = specCanvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * specCanvas.width / rect.width;
+    const left = 64, right = 12;
+    const plotW = specCanvas.width - left - right;
+    const t = (x - left) / plotW * duration;
+    return Math.max(0, Math.min(duration, t));
+  }
+
+  specCanvas.addEventListener('pointerdown', (e) => {
+    if (!samples) return;
+    isSelecting = true;
+    dragStartTime = canvasToTime(e);
+    cursorTime = dragStartTime;
+    selStart = dragStartTime;
+    selEnd = dragStartTime;
+    specCanvas.setPointerCapture(e.pointerId);
+    drawAll();
+    setStatus();
+  });
+
+  specCanvas.addEventListener('pointermove', (e) => {
+    if (!samples || !isSelecting) return;
+    selEnd = canvasToTime(e);
+    cursorTime = selEnd;
+    drawAll();
+    setStatus();
+  });
+
+  specCanvas.addEventListener('pointerup', (e) => {
+    if (!samples) return;
+    isSelecting = false;
+    const t = canvasToTime(e);
+    selEnd = t;
+    if (Math.abs(selEnd - selStart) < 0.01) {
+      cursorTime = t;
+      selStart = selEnd = null;
+    }
+    drawAll();
+    setStatus();
+  });
+
+  drawAll();
+})();
+</script>
+</body>
+</html>
