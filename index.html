@@ -38,11 +38,11 @@
         </label>
         <label class="controlGroup">Palette
           <select id="paletteSelect">
-            <option value="batblue" selected>Blu bat</option>
+            <option value="batblue" selected>Alto contrasto</option>
             <option value="batfocus">Bat focus</option>
-            <option value="4dark">4 colori scuri</option>
+            <option value="4dark">4 colori</option>
             <option value="2dark">2 colori</option>
-            <option value="bw">bianco/nero</option>
+            <option value="bw">B/N</option>
           </select>
         </label>
         <label class="controlGroup">Righello (kHz)
@@ -68,7 +68,7 @@
       <div class="canvasWrap">
         <canvas id="spectrogram" width="1600" height="560"></canvas>
       </div>
-      <div class="axisLabel">Spettrogramma: asse X = tempo originale; asse Y = frequenza originale. La linea rossa è il righello di frequenza. Trascina per selezionare; click singolo per posizionare il cursore.</div>
+      <div class="axisLabel">Spettrogramma: asse X = tempo originale; asse Y = frequenza originale</div>
     </section>
 
     <section class="row2">
@@ -76,19 +76,13 @@
         <div class="canvasWrap">
           <canvas id="zoomSpectrogram" width="900" height="320"></canvas>
         </div>
-        <div class="axisLabel">Zoom selezione: mostra in dettaglio lo spettrogramma dell’intervallo selezionato. Se non c’è selezione, mostra una finestra attorno al cursore.</div>
+        <div class="axisLabel">Zoom selezione.</div>
       </section>
       <section class="panel help">
         <div id="autoIdResults" class="autoBox">
           <b style="color:var(--text);">Auto‑ID Europa</b><br>
           Carica un WAV e premi “Auto‑ID”. Il risultato è un suggerimento per gruppi morfo‑acustici europei, non una determinazione certa.
         </div>
-        <b>Uso rapido</b><br>
-        1. Carica un WAV full-spectrum, ad esempio 384 kHz.<br>
-        2. Il playback viene preparato a <b>sample rate / 10</b>: 384 kHz → 38,4 kHz, quindi il suono diventa udibile e 10× più lento.<br>
-        3. Trascina sullo spettrogramma principale per creare una selezione.<br>
-        4. La vista inferiore mostra una <b>zoomata della selezione</b>.<br>
-        5. Attiva il loop per ripetere solo la selezione.<br><br>
       </section>
     </section>
 
@@ -96,7 +90,7 @@
       <div class="canvasWrap">
         <canvas id="segmentedSpectrogram" width="1600" height="320"></canvas>
       </div>
-      <div class="axisLabel">Segmentazione calls: vista di supporto che prova a mostrare solo i pixel più intensi e localmente prominenti associati alle chiamate rilevate dall’Auto‑ID. Il resto viene scurito. Non è una segmentazione scientifica definitiva, ma una vista utile per isolare visivamente il “baffo”.</div>
+      <div class="axisLabel">Segmentazione chiamate</div>
     </section>
   </main>
   <footer>Audiobat Web prototype · Enrico Melis</footer>
