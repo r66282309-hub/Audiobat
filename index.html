@@ -399,8 +399,6 @@
     'Non classificabile'
   ];
 
-  // Profili morfo-acustici europei semplificati.
-  // Non è un vero database: serve a ordinare i candidati più plausibili per gruppi/specie comuni.
   const europeanBatProfiles = [
     { label: 'Pipistrellus pipistrellus-like', group: 'Pipistrellus', peak:[42,49], dur:[3,13], bw:[4,28], note:'Picco tipico attorno a 45 kHz; forte sovrapposizione con altri Pipistrellus.' },
     { label: 'Pipistrellus pygmaeus-like', group: 'Pipistrellus', peak:[52,60], dur:[3,12], bw:[4,30], note:'Picco alto, spesso vicino a 55 kHz; verificare habitat e sequenza.' },
@@ -612,8 +610,8 @@
     const s1 = Math.min(samples.length, Math.floor(endTime * sampleRate));
     const segment = samples.subarray(s0, s1);
 
-    // Crea un AudioBuffer con lo stesso numero di campioni, ma sampleRate 10 volte più basso.
-    // Così 384 kHz diventa 38,4 kHz e il playback dura 10 volte di più.
+  
+    // 384 kHz diventa 38,4 kHz - rallentato 10 volte
     const safeRate = Math.max(3000, Math.min(192000, playbackSampleRate));
     const buffer = audioCtx.createBuffer(1, segment.length, safeRate);
     buffer.copyToChannel(segment, 0);
@@ -758,8 +756,8 @@
     const maxFreq = Math.min(sampleRate / 2, maxFreqDisplay);
     const sensitivity = Number(sensitivitySlider.value);
 
-    // Analisi diretta sul segnale originale, non sullo spettrogramma ridotto.
-    // L'Auto-ID è volutamente conservativo: segmenti troppo lunghi o troppo bassi vengono marcati come non-bat-like.
+    // Analisi diretta sul segnale originale
+    
     const n = 1024;
     const hop = 96;
     const window = hann(n);
@@ -803,10 +801,10 @@
     const highLevel = percentile(dbs, 0.95);
     const dynamicRange = Math.max(6, highLevel - noiseFloor);
 
-    // Soglia adattiva: più alta è la sensibilità, più la soglia scende verso il rumore.
+    // Soglia adattiva
     const thresholdDb = noiseFloor + dynamicRange / sensitivity;
     const minCallDur = 0.0012;
-    const maxBatCallDur = 0.080;   // sopra ~80 ms non viene trattato come chiamata impulsiva di pipistrello
+    const maxBatCallDur = 0.080;   // sopra ~80 ms non viene trattato come chiamata del pippy
     const maxGap = 0.010;
     const active = framePeaks.filter(f => f.db >= thresholdDb);
 
@@ -1170,7 +1168,7 @@
       Chiamate utili rilevate: <b style="color:var(--text);">${calls.length}</b>${rejectedNote}<br>
       Frequenza di picco media: <b style="color:var(--text);">${(summary.meanPeak/1000).toFixed(1)} kHz</b><br>
       <div style="margin-top:6px;">${counts}</div>
-      <div class="learnHint" style="margin-top:6px;">Suoni in databasee: <b>${trainingExamples.length}</b></div>
+      <div class="learnHint" style="margin-top:6px;">Suoni in database: <b>${trainingExamples.length}</b></div>
       <div class="dominantCorrectionBox">
         <div><b>Correzione manuale del risultato dominante</b></div>
         <div class="correctionStack dominantCorrectionStack">
@@ -1335,7 +1333,7 @@
   }
 
   function colorMap(v) {
-    // Palette selezionabile: tutte mantengono lo sfondo scuro e portano solo i segnali più intensi verso il bianco.
+    // Palette 
     v = Math.max(0, Math.min(1, v));
     const mode = paletteSelect ? paletteSelect.value : '4dark';
     let stops;
@@ -1347,7 +1345,7 @@
         [1.00, [255, 255, 255]]
       ];
     } else if (mode === 'bw') {
-      // Bianco e nero quasi puro, utile per lettura estrema.
+      // Bianco e nero 
       const g = Math.round(255 * Math.pow(v, 1.8));
       return [g, g, g];
     } else {
