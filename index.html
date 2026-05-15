@@ -6,71 +6,141 @@
   <title>Audiobat</title>
   <style>
     :root {
-      --bg: #0f1115;
-      --panel: #171a21;
-      --panel2: #202431;
-      --text: #e8eaf0;
-      --muted: #9aa3b2;
-      --accent: #5db7ff;
-      --line: #303747;
-      --danger: #ff6b6b;
-      --ok: #7bd88f;
+      --bg: #06101f;
+      --bg2: #07172b;
+      --panel: rgba(9, 24, 43, .88);
+      --panel2: #0d2540;
+      --text: #eef7ff;
+      --muted: #8fa9c4;
+      --accent: #6ee7ff;
+      --accent2: #b7f7ff;
+      --line: rgba(126, 187, 221, .18);
+      --danger: #ff7a8a;
+      --ok: #91f7b4;
+      --warn: #ffd166;
+      --spectro-bg: #01091b;
     }
     * { box-sizing: border-box; }
+    html { color-scheme: dark; height: 100%; }
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
+      min-height: 100vh;
+      min-height: 100dvh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(30, 113, 176, .25), transparent 32rem),
+        linear-gradient(180deg, #06101f 0%, #030814 100%);
       color: var(--text);
     }
     header {
-      padding: 16px 20px;
-      background: linear-gradient(180deg, #171b24, #101217);
+      padding: 14px clamp(16px, 2.5vw, 32px) 10px;
       border-bottom: 1px solid var(--line);
     }
+    .hero {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      width: min(100%, 1920px);
+      margin: 0 auto;
+    }
     h1 {
-      font-size: 20px;
+      font-size: clamp(24px, 3vw, 36px);
+      letter-spacing: -0.04em;
       margin: 0 0 4px;
-      font-weight: 700;
+      font-weight: 800;
     }
     .sub {
       color: var(--muted);
-      font-size: 13px;
+      font-size: 14px;
+      max-width: 720px;
+    }
+    .credit {
+      color: rgba(238, 247, 255, .38);
+      font-size: 11px;
+      white-space: nowrap;
+      user-select: none;
     }
     main {
-      padding: 16px;
+      width: min(100vw, 1920px);
+      margin: 0 auto;
+      padding: 12px clamp(10px, 1.6vw, 24px) 18px;
       display: grid;
       gap: 12px;
     }
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 14px;
+      border-radius: 18px;
       padding: 12px;
-      box-shadow: 0 10px 24px rgba(0,0,0,.22);
+      box-shadow: 0 20px 55px rgba(0,0,0,.28);
+      backdrop-filter: blur(14px);
     }
     .controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 9px;
       align-items: center;
     }
     button, label.filebtn {
       background: var(--panel2);
       color: var(--text);
       border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 8px 12px;
-      font-size: 14px;
+      border-radius: 999px;
+      padding: 9px 13px;
+      font-size: 13px;
       cursor: pointer;
       user-select: none;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
     }
-    button:hover, label.filebtn:hover { border-color: var(--accent); }
-    button.primary { background: #17364e; border-color: #286a98; }
-    button.danger { background: #4c2025; border-color: #8d3b45; }
-    button:disabled { opacity: .45; cursor: not-allowed; }
+    button:hover, label.filebtn:hover { border-color: rgba(110, 231, 255, .75); transform: translateY(-1px); }
+    button.primary { background: linear-gradient(180deg, #155b83, #0e3c60); border-color: rgba(110, 231, 255, .55); }
+    button.danger { background: #3a1822; border-color: rgba(255, 122, 138, .45); }
+    button:disabled { opacity: .43; cursor: not-allowed; transform: none; }
     input[type="file"] { display: none; }
-    input[type="range"] { width: 150px; }
+    input[type="range"] { width: 140px; accent-color: var(--accent); }
+    input[type="text"] {
+      background: var(--panel2);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 7px 10px;
+      font-size: 13px;
+      width: 92px;
+      outline: none;
+    }
+    select {
+      background: var(--panel2);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 7px 10px;
+      font-size: 13px;
+      min-width: 110px;
+      outline: none;
+    }
+    select:hover, select:focus, input[type="text"]:hover, input[type="text"]:focus { border-color: rgba(110,231,255,.55); }
+    .miniBtn { padding: 6px 9px; border-radius: 9px; font-size: 12px; }
+    .learnHint { color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .valueBadge {
+      color: #ff8a80;
+      font-size: 12px;
+      min-width: 42px;
+      display: inline-block;
+      text-align: right;
+      margin-left: 4px;
+    }
+    .controlGroup {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.055);
+      border-radius: 999px;
+      padding: 7px 10px;
+    }
     .status {
       font-size: 13px;
       color: var(--muted);
@@ -78,14 +148,14 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
       gap: 6px 16px;
-      margin-top: 10px;
+      margin-top: 12px;
     }
-    .status b { color: var(--text); font-weight: 600; }
+    .status b { color: var(--text); font-weight: 650; }
     .canvasWrap {
       position: relative;
-      background: #050609;
-      border: 1px solid var(--line);
-      border-radius: 12px;
+      background: var(--spectro-bg);
+      border: 1px solid rgba(110, 231, 255, .14);
+      border-radius: 16px;
       overflow: hidden;
     }
     canvas {
@@ -97,37 +167,101 @@
     .axisLabel {
       font-size: 12px;
       color: var(--muted);
-      margin: 6px 2px 0;
+      margin: 8px 4px 0;
     }
     .row2 {
       display: grid;
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: minmax(0, 0.95fr) minmax(620px, 1.05fr);
       gap: 12px;
+      align-items: start;
+    }
+
+    @media (min-width: 1200px) and (min-height: 760px) {
+      .panel:first-child { padding: 12px 14px; }
+      #spectrogram { aspect-ratio: 16 / 6; }
+      .row2 { grid-template-columns: minmax(0, 0.92fr) minmax(680px, 1.08fr); }
     }
     @media (max-width: 900px) {
+      .hero { display: block; }
+      .credit { margin-top: 10px; }
       .row2 { grid-template-columns: 1fr; }
     }
     .help {
       color: var(--muted);
       font-size: 13px;
-      line-height: 1.5;
+      line-height: 1.55;
     }
     .pill {
       display: inline-block;
-      color: var(--ok);
-      border: 1px solid #315d3a;
-      background: #142217;
+      color: #062033;
+      border: 1px solid rgba(183, 247, 255, .65);
+      background: linear-gradient(180deg, var(--accent2), var(--accent));
       border-radius: 999px;
-      padding: 2px 8px;
-      margin-left: 6px;
+      padding: 3px 9px;
+      margin-left: 7px;
       font-size: 12px;
+      vertical-align: middle;
+      letter-spacing: 0;
     }
-    .warn { color: #ffd166; }
+    .warn { color: var(--warn); }
+    .autoBox {
+      margin-bottom:12px;
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(1, 9, 27, .55);
+      color:var(--muted);
+      max-height: 48vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-width: 0;
+    }
+    .autoBox table {
+      width: 100% !important;
+      min-width: 0 !important;
+      table-layout: fixed;
+    }
+    .autoBox th, .autoBox td {
+      overflow-wrap: anywhere;
+      word-break: normal;
+    }
+    .autoBox select { min-width: 0; width: 100%; max-width: 100%; }
+    .autoBox input[type="text"] { width: 100% !important; max-width: 100%; }
+    .autoBox .miniBtn { white-space: nowrap; }
+    #autoIdBtn {
+      background: linear-gradient(135deg, #ffb000, #ff5a1f) !important;
+      color: #08111f !important;
+      border-color: rgba(255, 207, 92, .95) !important;
+      box-shadow: 0 0 0 1px rgba(255, 214, 92, .42), 0 8px 26px rgba(255, 90, 31, .32) !important;
+      font-weight: 900;
+      letter-spacing: .02em;
+    }
+    #autoIdBtn:not(:disabled):hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+    #autoIdBtn:disabled { opacity: .62; filter: saturate(.8); }
+    .correctionStack { display: grid; gap: 6px; min-width: 0; }
+    table th, table td { padding: 6px 7px; border-bottom: 1px solid rgba(255,255,255,.055); text-align: left; vertical-align: top; }
+    footer {
+      width: min(100%, 1920px);
+      margin: 0 auto;
+      padding: 0 clamp(10px, 1.6vw, 24px) 18px;
+      color: rgba(238,247,255,.28);
+      font-size: 11px;
+      text-align: right;
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Audiobat <span class="pill">Web</span></h1>
+    <div class="hero">
+      <div>
+        <h1>Audiobat <span class="pill">Web</span></h1>
+        <div class="sub">European bat call analyzer with assisted learning</div>
+      </div>
+      <div class="credit">prototype by Enrico Melis</div>
+    </div>
   </header>
 
   <main>
@@ -143,13 +277,24 @@
         <button id="clearSelBtn" disabled>Cancella selezione</button>
         <button id="autoIdBtn" disabled>Auto-ID</button>
         <button id="exportCsvBtn" disabled>Esporta CSV</button>
-        <label>Gain ascolto
+        <label class="controlGroup">Gain
           <input id="gainSlider" type="range" min="0" max="4" value="1" step="0.05" />
         </label>
-        <label>Contrasto spettrogramma
-          <input id="contrastSlider" type="range" min="0" max="100" value="35" step="1" />
+        <label class="controlGroup">Contrasto
+          <input id="contrastSlider" type="range" min="0" max="100" value="22" step="1" />
         </label>
-        <label>Sensibilità Auto-ID
+        <label class="controlGroup">Palette
+          <select id="paletteSelect">
+            <option value="4dark" selected>4 colori</option>
+            <option value="2dark">2 colori</option>
+            <option value="bw">bianco/nero</option>
+          </select>
+        </label>
+        <label class="controlGroup">Linea grafica (kHz)
+          <input id="highPassInput" type="text" inputmode="decimal" value="20,0" placeholder="es. 40,5" />
+          <span id="highPassValue" class="valueBadge">20,0 kHz</span>
+        </label>
+        <label class="controlGroup">Sensibilità Auto‑ID
           <input id="sensitivitySlider" type="range" min="0.5" max="3" value="1.4" step="0.1" />
         </label>
       </div>
@@ -160,32 +305,27 @@
 
     <section class="panel">
       <div class="canvasWrap">
-        <canvas id="spectrogram" width="1400" height="560"></canvas>
+        <canvas id="spectrogram" width="1920" height="720"></canvas>
       </div>
-      <div class="axisLabel">Spettrogramma: asse X = tempo originale del file; asse Y = frequenza originale. Trascina per selezionare. Click singolo per posizionare il cursore.</div>
+      <div class="axisLabel">Spettrogramma: asse X = tempo originale; asse Y = frequenza originale. La linea rossa è il righello di frequenza. Trascina per selezionare; click singolo per posizionare il cursore.</div>
     </section>
 
     <section class="row2">
       <section class="panel">
         <div class="canvasWrap">
-          <canvas id="zoomSpectrogram" width="900" height="360"></canvas>
+          <canvas id="zoomSpectrogram" width="960" height="360"></canvas>
         </div>
         <div class="axisLabel">Zoom selezione: mostra in dettaglio lo spettrogramma dell’intervallo selezionato. Se non c’è selezione, mostra una finestra attorno al cursore.</div>
       </section>
       <section class="panel help">
-        <div id="autoIdResults" style="margin-bottom:12px; padding:10px; border:1px solid var(--line); border-radius:10px; background:#11151d; color:var(--muted);">
-          <b style="color:var(--text);">Auto-ID</b><br>
-          Carica un WAV e premi “Auto-ID”. Il risultato è un suggerimento preliminare, non una determinazione certa.
+        <div id="autoIdResults" class="autoBox">
+          <b style="color:var(--text);">Auto‑ID Europa</b><br>
+          Carica un WAV e premi “Auto‑ID”. Il risultato è un suggerimento per gruppi morfo‑acustici europei, non una determinazione certa.
         </div>
-        <b>Uso rapido</b><br>
-        1. Carica un WAV full-spectrum, ad esempio 384 kHz.<br>
-        2. Il playback viene preparato a <b>sample rate / 10</b>: 384 kHz → 38,4 kHz, quindi il suono diventa udibile e 10× più lento.<br>
-        3. Trascina sullo spettrogramma principale per creare una selezione.<br>
-        4. La vista inferiore mostra una <b>zoomata della selezione</b>.<br>
-        5. Attiva il loop per ripetere solo la selezione.<br><br>
       </section>
     </section>
   </main>
+  <footer>Audiobat Web prototype · Enrico Melis</footer>
 
 <script>
 (() => {
@@ -199,6 +339,9 @@
   const autoIdResults = document.getElementById('autoIdResults');
   const gainSlider = document.getElementById('gainSlider');
   const contrastSlider = document.getElementById('contrastSlider');
+  const paletteSelect = document.getElementById('paletteSelect');
+  const highPassInput = document.getElementById('highPassInput');
+  const highPassValue = document.getElementById('highPassValue');
   const sensitivitySlider = document.getElementById('sensitivitySlider');
   const statusEl = document.getElementById('status');
   const specCanvas = document.getElementById('spectrogram');
@@ -234,6 +377,41 @@
   let dragStartTime = 0;
   let loop = false;
   let lastAutoIdResults = null;
+  let trainingExamples = [];
+  let trainingLoaded = false;
+
+  const SUPABASE_URL = 'https://wbmdusjmsblxhkhqnaiy.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndibWR1c2ptc2JseGhraHFuYWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTc4NDIsImV4cCI6MjA5NDQzMzg0Mn0.0t1Qdl6xxgx9TrcAKSO95oTq9Gi3MBNtLviSEb5RCto';
+  const TRAINING_TABLE = 'bat_training_examples';
+  const correctionLabels = [
+    '',
+    'Confermo suggerimento',
+    'Pipistrellus pipistrellus-like',
+    'Pipistrellus pygmaeus-like',
+    'Pipistrellus kuhlii / nathusii-like',
+    'Hypsugo savii-like',
+    'Eptesicus / Nyctalus-like',
+    'Miniopterus schreibersii-like',
+    'Myotis-like',
+    'Rhinolophus ferrumequinum-like',
+    'Rhinolophus hipposideros-like',
+    'Human / bird / noise-like',
+    'Non classificabile'
+  ];
+
+  // Profili morfo-acustici europei semplificati.
+  // Non è un vero database: serve a ordinare i candidati più plausibili per gruppi/specie comuni.
+  const europeanBatProfiles = [
+    { label: 'Pipistrellus pipistrellus-like', group: 'Pipistrellus', peak:[42,49], dur:[3,13], bw:[4,28], note:'Picco tipico attorno a 45 kHz; forte sovrapposizione con altri Pipistrellus.' },
+    { label: 'Pipistrellus pygmaeus-like', group: 'Pipistrellus', peak:[52,60], dur:[3,12], bw:[4,30], note:'Picco alto, spesso vicino a 55 kHz; verificare habitat e sequenza.' },
+    { label: 'Pipistrellus kuhlii / nathusii-like', group: 'Pipistrellus basso', peak:[34,42], dur:[4,18], bw:[3,25], note:'Gruppo a frequenza più bassa; P. kuhlii e P. nathusii possono sovrapporsi.' },
+    { label: 'Hypsugo savii-like', group: 'Hypsugo', peak:[30,38], dur:[5,20], bw:[3,22], note:'Compatibile con frequenze medio-basse; attenzione alla sovrapposizione con Pipistrellus kuhlii.' },
+    { label: 'Eptesicus / Nyctalus-like', group: 'Open-space basso', peak:[18,32], dur:[8,35], bw:[1,16], note:'Chiamate più basse e spesso più strette; gruppo da verificare manualmente.' },
+    { label: 'Miniopterus schreibersii-like', group: 'Miniopterus', peak:[48,57], dur:[4,12], bw:[12,45], note:'FM piuttosto ampia con picco alto; può confondersi con Pipistrellus alto.' },
+    { label: 'Myotis-like', group: 'Myotis', peak:[38,95], dur:[2,10], bw:[25,90], note:'FM ampia e ripida; di solito meglio fermarsi al gruppo Myotis.' },
+    { label: 'Rhinolophus ferrumequinum-like', group: 'Rhinolophus CF basso', peak:[76,86], dur:[18,80], bw:[0,8], note:'Componente quasi costante; controllare se la traccia è orizzontale.' },
+    { label: 'Rhinolophus hipposideros-like', group: 'Rhinolophus CF alto', peak:[105,115], dur:[18,80], bw:[0,8], note:'CF alta; richiede file pulito e campionamento adeguato.' }
+  ];
 
   function setStatus(extra = '') {
     if (!samples) {
@@ -271,6 +449,35 @@
   function selectionMin() { return Math.max(0, Math.min(selStart, selEnd)); }
   function selectionMax() { return Math.min(duration, Math.max(selStart, selEnd)); }
 
+  function parseHighPassKhz(rawValue) {
+    const raw = String(rawValue ?? '').trim().replace(',', '.');
+    if (!raw) return 0;
+    const n = Number(raw);
+    if (!isFinite(n)) return 0;
+    return Math.max(0, Math.min(160, n));
+  }
+
+  function formatKhzValue(khz) {
+    return khz.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  }
+
+  function getHighPassHz() {
+    return parseHighPassKhz(highPassInput ? highPassInput.value : 0) * 1000;
+  }
+
+  function normalizeHighPassInput() {
+    if (!highPassInput) return 0;
+    const khz = parseHighPassKhz(highPassInput.value);
+    highPassInput.value = formatKhzValue(khz);
+    return khz;
+  }
+
+  function updateHighPassLabel(normalizeField = false) {
+    if (!highPassValue) return;
+    const khz = normalizeField ? normalizeHighPassInput() : parseHighPassKhz(highPassInput ? highPassInput.value : 0);
+    highPassValue.textContent = khz === 0 ? 'OFF' : `${formatKhzValue(khz)} kHz`;
+  }
+
   fileInput.addEventListener('change', async (e) => {
     const f = e.target.files[0];
     if (!f) return;
@@ -300,6 +507,7 @@
       computeSpectrogram();
       drawAll();
       setStatus('pronto');
+      loadTrainingExamples().catch(err => console.warn('Training non caricato', err));
     } catch (err) {
       console.error(err);
       alert('Errore apertura WAV: ' + err.message);
@@ -338,16 +546,60 @@
   exportCsvBtn.addEventListener('click', () => {
     if (!lastAutoIdResults) {
       lastAutoIdResults = runAutoIdHeuristic();
+      enrichWithTraining(lastAutoIdResults);
       renderAutoIdResults(lastAutoIdResults);
     }
     exportAutoIdCsv(lastAutoIdResults);
+  });
+
+  autoIdResults.addEventListener('click', async (ev) => {
+    const btn = ev.target.closest('[data-save-dominant-example]');
+    if (!btn || !lastAutoIdResults) return;
+
+    const select = autoIdResults.querySelector('[data-dominant-correction]');
+    const notes = autoIdResults.querySelector('[data-dominant-notes]');
+    let corrected = select ? select.value : '';
+    if (!corrected) {
+      btn.textContent = 'Scegli correzione';
+      setTimeout(() => btn.textContent = 'Salva dominante', 1200);
+      return;
+    }
+
+    const dominantCall = buildDominantTrainingCall(lastAutoIdResults);
+    if (!dominantCall) return;
+    if (corrected === 'Confermo suggerimento') corrected = dominantCall.suggestion.label;
+
+    btn.disabled = true;
+    btn.textContent = 'Salvo...';
+    try {
+      await saveTrainingExample(dominantCall, corrected, notes ? notes.value : '');
+      btn.textContent = 'Dominante salvato';
+      await loadTrainingExamples(true);
+    } catch (err) {
+      console.error(err);
+      btn.disabled = false;
+      btn.textContent = 'Errore salvataggio';
+      alert('Errore salvataggio Supabase: ' + err.message);
+    }
   });
 
   gainSlider.addEventListener('input', () => {
     if (gainNode) gainNode.gain.value = Number(gainSlider.value);
   });
 
-  contrastSlider.addEventListener('input', () => drawSpectrogram());
+  contrastSlider.addEventListener('input', () => drawAll());
+  paletteSelect.addEventListener('change', () => drawAll());
+  highPassInput.addEventListener('input', () => {
+    updateHighPassLabel(false);
+    drawAll();
+    if (lastAutoIdResults) lastAutoIdResults = null;
+  });
+  highPassInput.addEventListener('change', () => {
+    updateHighPassLabel(true);
+    drawAll();
+    if (lastAutoIdResults) lastAutoIdResults = null;
+  });
+  updateHighPassLabel(true);
 
   function startPlayback(startTime, endTime) {
     stopPlayback(false);
@@ -507,6 +759,7 @@
     const sensitivity = Number(sensitivitySlider.value);
 
     // Analisi diretta sul segnale originale, non sullo spettrogramma ridotto.
+    // L'Auto-ID è volutamente conservativo: segmenti troppo lunghi o troppo bassi vengono marcati come non-bat-like.
     const n = 1024;
     const hop = 96;
     const window = hann(n);
@@ -516,6 +769,7 @@
     if (available < n) {
       return {
         calls: [],
+        rejected: [],
         summary: { dominant: 'Selezione troppo corta', counts: {}, meanPeak: 0 },
         range: [tMin, tMax],
         debug: `Selezione troppo corta: ${(available / sampleRate * 1000).toFixed(1)} ms. Serve almeno ${(n / sampleRate * 1000).toFixed(1)} ms.`
@@ -535,7 +789,13 @@
     }
 
     if (framePeaks.length === 0) {
-      return { calls: [], summary: { dominant: 'Nessuna energia utile', counts: {}, meanPeak: 0 }, range: [tMin, tMax], debug: 'Nessun bin utile nella banda 15 kHz–Nyquist.' };
+      return {
+        calls: [],
+        rejected: [],
+        summary: { dominant: 'Nessuna energia utile', counts: {}, meanPeak: 0 },
+        range: [tMin, tMax],
+        debug: `Nessun bin utile nella banda ${(minFreq/1000).toFixed(0)} kHz–Nyquist.`
+      };
     }
 
     const dbs = framePeaks.map(f => f.db).sort((a,b) => a-b);
@@ -546,11 +806,12 @@
     // Soglia adattiva: più alta è la sensibilità, più la soglia scende verso il rumore.
     const thresholdDb = noiseFloor + dynamicRange / sensitivity;
     const minCallDur = 0.0012;
-    const maxCallDur = 0.090;
+    const maxBatCallDur = 0.080;   // sopra ~80 ms non viene trattato come chiamata impulsiva di pipistrello
     const maxGap = 0.010;
-
     const active = framePeaks.filter(f => f.db >= thresholdDb);
+
     const calls = [];
+    const rejected = [];
     let current = [];
     for (const fr of active) {
       if (current.length === 0) {
@@ -559,17 +820,17 @@
         const prev = current[current.length - 1];
         if (fr.time - prev.time <= maxGap) current.push(fr);
         else {
-          pushCallIfValid(current, calls, minCallDur, maxCallDur);
+          pushEventConservative(current, calls, rejected, minCallDur, maxBatCallDur);
           current = [fr];
         }
       }
     }
-    pushCallIfValid(current, calls, minCallDur, maxCallDur);
+    pushEventConservative(current, calls, rejected, minCallDur, maxBatCallDur);
 
     const classified = calls.map(c => ({ ...c, suggestion: classifyCall(c) }));
     const summary = summarizeCalls(classified);
-    const debug = `Frame: ${framePeaks.length}; attivi: ${active.length}; noise floor: ${noiseFloor.toFixed(1)} dB; soglia: ${thresholdDb.toFixed(1)} dB; picco max: ${Math.max(...framePeaks.map(f=>f.db)).toFixed(1)} dB.`;
-    return { calls: classified, summary, range: [tMin, tMax], debug };
+    const debug = `Banda analizzata: ${(minFreq/1000).toFixed(0)}–${(maxFreq/1000).toFixed(0)} kHz; frame: ${framePeaks.length}; attivi: ${active.length}; scartati/non-bat-like: ${rejected.length}; noise floor: ${noiseFloor.toFixed(1)} dB; soglia: ${thresholdDb.toFixed(1)} dB; picco max: ${Math.max(...framePeaks.map(f=>f.db)).toFixed(1)} dB.`;
+    return { calls: classified, rejected, summary, range: [tMin, tMax], debug };
   }
 
   function percentile(sortedValues, p) {
@@ -609,12 +870,11 @@
     return { freq: bestK * binHz, db: bestDb };
   }
 
-  function pushCallIfValid(frames, calls, minDur, maxDur) {
+  function pushEventConservative(frames, calls, rejected, minDur, maxBatDur) {
     if (!frames || frames.length < 2) return;
     const t0 = frames[0].time;
     const t1 = frames[frames.length - 1].time;
     const dur = t1 - t0;
-    if (dur < minDur || dur > maxDur) return;
     const freqs = frames.map(f => f.freq);
     const dbs = frames.map(f => f.db);
     const fStart = freqs[0];
@@ -625,38 +885,211 @@
     const fMean = freqs.reduce((a,b)=>a+b,0) / freqs.length;
     const slope = (fEnd - fStart) / Math.max(0.0001, dur);
     const bandwidth = fMax - fMin;
-    calls.push({ t0, t1, dur, fStart, fEnd, fMin, fMax, fPeak, fMean, bandwidth, slope, frames: frames.length });
+    const event = { t0, t1, dur, fStart, fEnd, fMin, fMax, fPeak, fMean, bandwidth, slope, frames: frames.length };
+
+    if (dur < minDur) return;
+
+    if (dur > maxBatDur) {
+      rejected.push({
+        ...event,
+        reason: 'Suono troppo lungo/continuo',
+        suggestion: {
+          label: 'Human / bird / noise-like',
+          confidence: 0.80,
+          note: 'Evento troppo lungo o continuo: non viene trattato come chiamata isolata di pipistrello.'
+        }
+      });
+      return;
+    }
+
+    if (fPeak < 35000) {
+      rejected.push({
+        ...event,
+        reason: 'Picco sotto 35 kHz',
+        suggestion: {
+          label: 'Human / bird / noise-like',
+          confidence: 0.70,
+          note: 'Picco sotto 35 kHz: escluso dall’Auto-ID specie. Alcuni pipistrelli grandi possono stare sotto questa soglia, quindi verifica manualmente se il contesto lo suggerisce.'
+        }
+      });
+      return;
+    }
+
+    calls.push(event);
   }
 
   function classifyCall(c) {
     const fp = c.fPeak / 1000;
-    const fm = c.fMean / 1000;
     const bw = c.bandwidth / 1000;
     const durMs = c.dur * 1000;
     const falling = c.fStart > c.fEnd + 3000;
     const narrow = bw < 8;
     const broad = bw > 25;
 
-    // Euristiche volutamente prudenti, tarate per dare gruppi morfo-acustici, non specie certe.
-    if (fp >= 48 && fp <= 58 && durMs >= 3 && durMs <= 14) {
-      return { label: 'Pipistrellus-like alto', confidence: 0.62, note: 'Compatibile con gruppo Pipistrellus ad alta frequenza; verificare contesto e chiamate multiple.' };
+    if (fp < 35) {
+      return {
+        label: 'Human / bird / noise-like',
+        confidence: 0.70,
+        note: 'Picco sotto 35 kHz: l’Auto‑ID specie non lo tratta come chiamata utile di pipistrello. Verifica manuale per eventuali specie grandi.'
+      };
     }
-    if (fp >= 38 && fp < 48 && durMs >= 3 && durMs <= 16) {
-      return { label: 'Pipistrellus/Hypsugo-like', confidence: 0.58, note: 'Frequenze compatibili con Pipistrellus medio-basso o Hypsugo; possibile sovrapposizione.' };
+
+    if (durMs > 80) {
+      return {
+        label: 'Human / bird / noise-like',
+        confidence: 0.80,
+        note: 'Evento troppo lungo/continuo: probabilmente non è una chiamata isolata distinguibile.'
+      };
     }
-    if (fp >= 22 && fp <= 35 && durMs >= 6 && durMs <= 30 && narrow) {
-      return { label: 'Nyctalus/Eptesicus-like', confidence: 0.55, note: 'Chiamata più bassa e relativamente stretta; possibile gruppo Nyctalus/Eptesicus/serotini.' };
+
+    const candidates = europeanBatProfiles.map(profile => {
+      const peakScore = rangeScore(fp, profile.peak[0], profile.peak[1]);
+      const durScore = rangeScore(durMs, profile.dur[0], profile.dur[1]);
+      const bwScore = rangeScore(bw, profile.bw[0], profile.bw[1]);
+      let score = peakScore * 0.55 + durScore * 0.25 + bwScore * 0.20;
+
+      if (profile.group === 'Myotis' && falling && broad) score += 0.12;
+      if (profile.group.startsWith('Rhinolophus') && narrow && durMs >= 15) score += 0.15;
+      if (profile.group.includes('Open-space') && narrow && durMs >= 8) score += 0.08;
+      if (profile.group === 'Pipistrellus' && durMs >= 3 && durMs <= 14) score += 0.05;
+
+      return { profile, score: Math.max(0, Math.min(1, score)) };
+    }).sort((a, b) => b.score - a.score);
+
+    const best = candidates[0];
+    if (!best || best.score < 0.38) {
+      return { label: 'Non determinato', confidence: 0.25, note: 'Parametri non abbastanza caratteristici per un suggerimento robusto.', candidates: candidates.slice(0, 3) };
     }
-    if (fp >= 70 && fp <= 115 && falling && broad && durMs <= 10) {
-      return { label: 'Myotis-like / Rhinolophus-disturbato?', confidence: 0.45, note: 'Segnale alto e FM; Myotis-like possibile. Se CF stabile, considerare Rhinolophus.' };
+
+    return {
+      label: best.profile.label,
+      confidence: Number((0.30 + best.score * 0.55).toFixed(2)),
+      note: best.profile.note,
+      candidates: candidates.slice(0, 3)
+    };
+  }
+
+  function rangeScore(value, min, max) {
+    if (value >= min && value <= max) return 1;
+    const width = Math.max(1, max - min);
+    const dist = value < min ? min - value : value - max;
+    return Math.max(0, 1 - dist / width);
+  }
+
+  async function loadTrainingExamples(force = false) {
+    if (trainingLoaded && !force) return trainingExamples;
+    const url = `${SUPABASE_URL}/rest/v1/${TRAINING_TABLE}?select=*&order=created_at.desc&limit=500`;
+    const res = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    });
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(msg || `HTTP ${res.status}`);
     }
-    if (fp >= 75 && narrow && durMs >= 15) {
-      return { label: 'CF alta / Rhinolophus-like', confidence: 0.50, note: 'Energia stretta e alta; controllare se la traccia è quasi orizzontale.' };
+    trainingExamples = await res.json();
+    trainingLoaded = true;
+    return trainingExamples;
+  }
+
+  async function saveTrainingExample(call, correctedLabel, notes = '') {
+    const payload = {
+      file_name: fileName || null,
+      file_hash: makeFileFingerprint(),
+      t_start: call.t0,
+      t_end: call.t1,
+      f_peak_hz: call.fPeak,
+      f_min_hz: call.fMin,
+      f_max_hz: call.fMax,
+      duration_ms: call.dur * 1000,
+      bandwidth_khz: call.bw,
+      suggested_label: call.suggestion?.label || null,
+      corrected_label: correctedLabel,
+      user_confidence: 'manual_check',
+      notes: notes || null
+    };
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TRAINING_TABLE}`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(msg || `HTTP ${res.status}`);
     }
-    if (fp < 22 && durMs >= 8) {
-      return { label: 'Bassa frequenza / rumore o specie grande', confidence: 0.35, note: 'Possibile rumore, ortottero, uccello o pipistrello a bassa frequenza: verifica manuale necessaria.' };
+  }
+
+  function makeFileFingerprint() {
+    const s = `${fileName}|${sampleRate}|${duration.toFixed(6)}|${samples ? samples.length : 0}`;
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
     }
-    return { label: 'Non determinato', confidence: 0.25, note: 'Parametri non abbastanza caratteristici per un suggerimento robusto.' };
+    return (h >>> 0).toString(16);
+  }
+
+  function enrichWithTraining(results) {
+    if (!results || !results.calls) return results;
+    for (const call of results.calls) {
+      call.learned = nearestTrainingSuggestion(call);
+    }
+    return results;
+  }
+
+  function nearestTrainingSuggestion(call) {
+    const usable = trainingExamples.filter(e => e.corrected_label && isFinite(Number(e.f_peak_hz)) && isFinite(Number(e.duration_ms)) && isFinite(Number(e.bandwidth_khz)));
+    if (usable.length < 3) return { label: 'Archivio insufficiente', count: usable.length, confidence: 0, detail: 'servono almeno 3 esempi salvati' };
+    const distances = usable.map(e => {
+      const peak = (Number(e.f_peak_hz) - call.fPeak) / 12000;
+      const dur = (Number(e.duration_ms) - call.dur * 1000) / 15;
+      const bw = (Number(e.bandwidth_khz) - call.bw) / 25;
+      const d = Math.sqrt(peak*peak + dur*dur + bw*bw);
+      return { e, d };
+    }).sort((a,b) => a.d - b.d).slice(0, 7);
+    const counts = {};
+    for (const x of distances) counts[x.e.corrected_label] = (counts[x.e.corrected_label] || 0) + 1;
+    const [label, count] = Object.entries(counts).sort((a,b) => b[1] - a[1])[0];
+    const meanD = distances.reduce((s,x) => s + x.d, 0) / distances.length;
+    const confidence = Math.max(0, Math.min(1, (count / distances.length) * (1 - Math.min(1, meanD / 2.2))));
+    return { label, count, confidence, detail: `${count}/${distances.length} esempi vicini; distanza media ${meanD.toFixed(2)}` };
+  }
+
+  function correctionOptionsHtml() {
+    return correctionLabels.map(x => `<option value="${escapeHtml(x)}">${x ? escapeHtml(x) : '— scegli —'}</option>`).join('');
+  }
+
+  function buildDominantTrainingCall(results) {
+    const calls = results?.calls || [];
+    if (!calls.length) return null;
+    const range = results.range || [calls[0].t0, calls[calls.length - 1].t1];
+    const dominant = results.summary?.dominant || 'Non determinato';
+    const peak = calls.reduce((sum, c) => sum + c.fPeak, 0) / calls.length;
+    const dur = calls.reduce((sum, c) => sum + c.dur, 0) / calls.length;
+    const bw = calls.reduce((sum, c) => sum + c.bw, 0) / calls.length;
+    const fMin = Math.min(...calls.map(c => c.fMin));
+    const fMax = Math.max(...calls.map(c => c.fMax));
+    return {
+      t0: range[0],
+      t1: range[1],
+      fPeak: peak,
+      fMin,
+      fMax,
+      dur,
+      bw,
+      suggestion: {
+        label: dominant,
+        confidence: calls.length ? Math.max(...calls.map(c => c.suggestion?.confidence || 0)) : 0,
+        note: 'Esempio salvato come correzione del risultato dominante dell’intervallo selezionato.'
+      }
+    };
   }
 
   function summarizeCalls(calls) {
@@ -673,36 +1106,94 @@
 
   function renderAutoIdResults(results) {
     const { calls, summary, range } = results;
+    const rejected = results.rejected || [];
+    const rejectedNote = rejected.length
+      ? `<br>Eventi scartati/non-bat-like: <b style="color:var(--text);">${rejected.length}</b>`
+      : '';
+
     if (calls.length === 0) {
-      autoIdResults.innerHTML = `<b style="color:var(--text);">Auto-ID</b><br>Nessuna chiamata rilevata nell’intervallo ${fmtTime(range[0])} – ${fmtTime(range[1])}.<br><br><span style="color:#ffd166;">Diagnostica:</span> ${results.debug || 'nessun dettaglio'}<br><br>Prova ad aumentare la <b>sensibilità Auto-ID</b>, selezionare una singola chiamata ben visibile, oppure verificare che il segnale sia sopra 15 kHz.`;
+      const rejectedPreview = rejected.slice(0, 6).map((c, i) => `
+        <tr>
+          <td>${i+1}</td>
+          <td>${fmtTime(c.t0)}</td>
+          <td>${(c.dur*1000).toFixed(1)} ms</td>
+          <td>${(c.fPeak/1000).toFixed(1)} kHz</td>
+          <td>${c.reason}</td>
+        </tr>
+      `).join('');
+
+      autoIdResults.innerHTML = `
+        <b style="color:var(--text);">Auto‑ID Europa</b><br>
+        Nessuna chiamata utile di pipistrello rilevata nell’intervallo ${fmtTime(range[0])} – ${fmtTime(range[1])}.${rejectedNote}<br><br>
+        ${rejectedPreview ? `
+          <div style="overflow-y:auto; overflow-x:hidden; margin-top:8px; max-height:170px;">
+            <table style="width:100%; border-collapse:collapse; font-size:12px; color:var(--muted);">
+              <thead><tr style="color:var(--text);"><th>#</th><th>Inizio</th><th>Durata</th><th>Picco</th><th>Motivo</th></tr></thead>
+              <tbody>${rejectedPreview}</tbody>
+            </table>
+          </div>` : ''}
+        <br><span style="color:#ffd166;">Diagnostica:</span> ${results.debug || 'nessun dettaglio'}<br><br>
+        Prova a isolare una singola chiamata netta, aumentare/ridurre la sensibilità, oppure spostare il <b>righello</b> solo come riferimento visivo.
+      `;
       return;
     }
 
-    const topCalls = calls.slice(0, 12).map((c, i) => `
+    const topCalls = calls.slice(0, 12).map((c, i) => {
+      const learned = c.learned && c.learned.confidence > 0
+        ? `<br><span class="learnHint">Appreso: ${escapeHtml(c.learned.label)} · ${Math.round(c.learned.confidence*100)}%<br>${escapeHtml(c.learned.detail)}</span>`
+        : `<br><span class="learnHint">Appreso: ${escapeHtml(c.learned?.detail || 'nessun confronto')}</span>`;
+      return `
       <tr>
         <td>${i+1}</td>
         <td>${fmtTime(c.t0)}</td>
         <td>${(c.dur*1000).toFixed(1)} ms</td>
         <td>${(c.fPeak/1000).toFixed(1)} kHz</td>
         <td>${(c.fMin/1000).toFixed(1)}–${(c.fMax/1000).toFixed(1)} kHz</td>
-        <td>${c.suggestion.label}</td>
+        <td>${c.suggestion.label}<br><span style="color:var(--muted);">${Math.round(c.suggestion.confidence*100)}%</span>${learned}</td>
+      </tr>`;
+    }).join('');
+
+    const rejectedRows = rejected.slice(0, 8).map((c, i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td>${fmtTime(c.t0)}</td>
+        <td>${(c.dur*1000).toFixed(1)} ms</td>
+        <td>${(c.fPeak/1000).toFixed(1)} kHz</td>
+        <td>${c.reason}</td>
       </tr>
     `).join('');
 
     const counts = Object.entries(summary.counts).map(([k,v]) => `${k}: ${v}`).join('<br>');
     autoIdResults.innerHTML = `
-      <b style="color:var(--text);">Auto-ID</b><br>
+      <b style="color:var(--text);">Auto‑ID Europa</b><br>
       <span style="color:var(--ok);">Risultato dominante:</span> <b style="color:var(--text);">${summary.dominant}</b><br>
-      Chiamate rilevate: <b style="color:var(--text);">${calls.length}</b><br>
+      Chiamate utili rilevate: <b style="color:var(--text);">${calls.length}</b>${rejectedNote}<br>
       Frequenza di picco media: <b style="color:var(--text);">${(summary.meanPeak/1000).toFixed(1)} kHz</b><br>
       <div style="margin-top:6px;">${counts}</div>
-      <div style="overflow:auto; margin-top:10px; max-height:220px;">
+      <div class="learnHint" style="margin-top:6px;">Esempi corretti caricati da Supabase: <b>${trainingExamples.length}</b>. Ora viene salvata solo la correzione del <b>risultato dominante</b>, così il dataset resta più semplice e coerente.</div>
+      <div class="dominantCorrectionBox">
+        <div><b>Correzione manuale del risultato dominante</b></div>
+        <div class="correctionStack dominantCorrectionStack">
+          <select data-dominant-correction>${correctionOptionsHtml()}</select>
+          <input data-dominant-notes type="text" placeholder="nota opzionale sul risultato dominante" />
+          <button class="miniBtn dominantSaveBtn" data-save-dominant-example>Salva dominante</button>
+        </div>
+      </div>
+      <div style="overflow-y:auto; overflow-x:hidden; margin-top:10px; max-height:260px;">
         <table style="width:100%; border-collapse:collapse; font-size:12px; color:var(--muted);">
           <thead><tr style="color:var(--text);"><th>#</th><th>Inizio</th><th>Durata</th><th>Picco</th><th>Banda</th><th>Gruppo</th></tr></thead>
           <tbody>${topCalls}</tbody>
         </table>
       </div>
-      <div style="margin-top:8px; color:#ffd166;">È una classificazione morfo-acustica preliminare: serve verifica manuale su più chiamate e conoscenza delle specie locali.</div>
+      ${rejectedRows ? `
+        <div style="margin-top:10px; color:var(--warn);">Scarti conservativi</div>
+        <div style="overflow-y:auto; overflow-x:hidden; margin-top:5px; max-height:160px;">
+          <table style="width:100%; border-collapse:collapse; font-size:12px; color:var(--muted);">
+            <thead><tr style="color:var(--text);"><th>#</th><th>Inizio</th><th>Durata</th><th>Picco</th><th>Motivo</th></tr></thead>
+            <tbody>${rejectedRows}</tbody>
+          </table>
+        </div>` : ''}
+      <div style="margin-top:8px; color:var(--warn);">Classificazione morfo‑acustica preliminare</div>
       <div style="margin-top:6px; color:var(--muted);">Diagnostica: ${results.debug || '—'}</div>
     `;
   }
@@ -769,8 +1260,8 @@
     const plotW = w - left - right;
     const plotH = h - top - bottom;
     const contrast = Number(contrastSlider.value);
-    const minDb = -115 + contrast * 0.45;
-    const maxDb = -20;
+    const minDb = -120 + contrast * 0.25;
+    const maxDb = -18;
 
     const img = specCtx.createImageData(plotW, plotH);
     for (let x = 0; x < plotW; x++) {
@@ -788,6 +1279,20 @@
       }
     }
     specCtx.putImageData(img, left, top);
+
+    const highPassHz = getHighPassHz();
+    if (highPassHz > 0 && highPassHz < maxFreqDisplay) {
+      const yHp = top + (1 - highPassHz / maxFreqDisplay) * plotH;
+      specCtx.strokeStyle = '#ff3b30';
+      specCtx.lineWidth = 2;
+      specCtx.beginPath();
+      specCtx.moveTo(left, yHp);
+      specCtx.lineTo(left + plotW, yHp);
+      specCtx.stroke();
+      specCtx.fillStyle = '#ff3b30';
+      specCtx.font = '12px system-ui';
+      specCtx.fillText(`${formatKhzValue(highPassHz / 1000)} kHz`, left + 8, Math.max(top + 14, yHp - 6));
+    }
 
     // Selection overlay
     if (hasSelection()) {
@@ -830,25 +1335,39 @@
   }
 
   function colorMap(v) {
-    // Palette tipo sonogramma: blu notte -> blu -> azzurro -> grigio chiaro -> bianco.
-    // Serve a tenere lo sfondo scuro e far emergere le chiamate in bianco.
+    // Palette selezionabile: tutte mantengono lo sfondo scuro e portano solo i segnali più intensi verso il bianco.
     v = Math.max(0, Math.min(1, v));
-    const stops = [
-      [0.00, [2, 6, 20]],
-      [0.18, [5, 20, 55]],
-      [0.38, [12, 58, 115]],
-      [0.58, [42, 132, 190]],
-      [0.78, [185, 218, 235]],
-      [1.00, [255, 255, 255]]
-    ];
+    const mode = paletteSelect ? paletteSelect.value : '4dark';
+    let stops;
+
+    if (mode === '2dark') {
+      // Due colori: blu notte -> bianco.
+      stops = [
+        [0.00, [2, 8, 22]],
+        [1.00, [255, 255, 255]]
+      ];
+    } else if (mode === 'bw') {
+      // Bianco e nero quasi puro, utile per lettura estrema.
+      const g = Math.round(255 * Math.pow(v, 1.8));
+      return [g, g, g];
+    } else {
+      // Quattro colori: tre toni scuri + bianco.
+      stops = [
+        [0.00, [2, 8, 22]],
+        [0.38, [8, 22, 52]],
+        [0.70, [16, 48, 92]],
+        [1.00, [255, 255, 255]]
+      ];
+    }
+
     for (let i = 0; i < stops.length - 1; i++) {
-      const [a, ca] = stops[i], [b, cb] = stops[i+1];
+      const [a, ca] = stops[i], [b, cb] = stops[i + 1];
       if (v >= a && v <= b) {
-        const p = (v - a) / (b - a);
+        const p = (v - a) / (b - a || 1);
         return ca.map((x, j) => Math.round(x + (cb[j] - x) * p));
       }
     }
-    return [255,255,255];
+    return [255, 255, 255];
   }
 
   function exportAutoIdCsv(results) {
@@ -957,8 +1476,8 @@
     const plotW = w - left - right;
     const plotH = h - top - bottom;
     const contrast = Number(contrastSlider.value);
-    const minDb = -115 + contrast * 0.45;
-    const maxDb = -20;
+    const minDb = -120 + contrast * 0.25;
+    const maxDb = -18;
     const n = 2048;
     const hop = 128;
     const window = hann(n);
@@ -989,6 +1508,20 @@
       }
     }
     zoomCtx.putImageData(img, left, top);
+
+    const highPassHz = getHighPassHz();
+    if (highPassHz > 0 && highPassHz < maxFreqDisplay) {
+      const yHp = top + (1 - highPassHz / maxFreqDisplay) * plotH;
+      zoomCtx.strokeStyle = '#ff3b30';
+      zoomCtx.lineWidth = 2;
+      zoomCtx.beginPath();
+      zoomCtx.moveTo(left, yHp);
+      zoomCtx.lineTo(left + plotW, yHp);
+      zoomCtx.stroke();
+      zoomCtx.fillStyle = '#ff3b30';
+      zoomCtx.font = '12px system-ui';
+      zoomCtx.fillText(`Righello ${formatKhzValue(highPassHz / 1000)} kHz`, left + 8, Math.max(top + 14, yHp - 6));
+    }
 
     // Cursor in zoom
     if (cursorTime >= t0 && cursorTime <= t1) {
