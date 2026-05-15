@@ -251,7 +251,7 @@
     btn.textContent = 'Salvo...';
     try {
       await saveTrainingExample(dominantCall, corrected, notes ? notes.value : '');
-      btn.textContent = 'Dominante salvato';
+      btn.textContent = 'Inserimento salvato';
       await loadTrainingExamples(true);
     } catch (err) {
       console.error(err);
@@ -853,13 +853,13 @@
       Chiamate utili rilevate: <b style="color:var(--text);">${calls.length}</b>${rejectedNote}<br>
       Frequenza di picco media: <b style="color:var(--text);">${(summary.meanPeak/1000).toFixed(1)} kHz</b><br>
       <div style="margin-top:6px;">${counts}</div>
-      <div class="learnHint" style="margin-top:6px;">Esempi corretti caricati da Supabase: <b>${trainingExamples.length}</b>. Ora viene salvata solo la correzione del <b>risultato dominante</b>, così il dataset resta più semplice e coerente.</div>
+      <div class="learnHint" style="margin-top:6px;">Numero file in database: <b>${trainingExamples.length}</b></div>
       <div class="dominantCorrectionBox">
         <div><b>Correzione manuale del risultato dominante</b></div>
         <div class="correctionStack dominantCorrectionStack">
           <select data-dominant-correction>${correctionOptionsHtml()}</select>
           <input data-dominant-notes type="text" placeholder="nota opzionale sul risultato dominante" />
-          <button class="miniBtn dominantSaveBtn" data-save-dominant-example>Salva dominante</button>
+          <button class="miniBtn dominantSaveBtn" data-save-dominant-example>Salva</button>
         </div>
       </div>
       <div style="overflow-y:auto; overflow-x:hidden; margin-top:10px; max-height:260px;">
@@ -876,7 +876,7 @@
             <tbody>${rejectedRows}</tbody>
           </table>
         </div>` : ''}
-      <div style="margin-top:8px; color:var(--warn);">È una classificazione morfo‑acustica preliminare: per una determinazione seria servono più chiamate pulite, specie attese nell’area e verifica manuale.</div>
+      <div style="margin-top:8px; color:var(--warn);">Classificazione morfo‑acustica preliminare.</div>
       <div style="margin-top:6px; color:var(--muted);">Diagnostica: ${results.debug || '—'}</div>
     `;
   }
